@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+ 
+    <parent>
+		<groupId>sc.fiji</groupId>
+		<artifactId>pom-fiji</artifactId>
+		<version>17.0.0</version>
+		<relativePath />
+	</parent>
+ 
+    <artifactId>MultiFocalParticleTracker_Complex3</artifactId>
+    <groupId>JNH</groupId>
+    <version>0.0.8-SNAPSHOT</version>
+ 
+<!-- TODO: Fill out these sections -->
+    <name>MultiFocalParticleTracker-Complex-3</name>
+    <description></description>    
+    <url>https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3</url>
+    <inceptionYear>2017</inceptionYear>
+ 	<organization>
+    	<name>JNH</name>
+    	<url>https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3</url>
+    </organization>
+    
+ 	<licenses>
+		<license>
+			<name>GNU General Public License v3+</name>
+			<url>http://www.gnu.org/licenses/gpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	
+	<developers>
+        <developer>
+            <id></id>
+            <name>Jan Niklas Hansen</name>
+            <email>jan.hansen(at)uni-bonn.de</email>
+            <url>https://github.com/hansenjn/</url>
+          	<organization>University of Bonn - Institute of Innate immunity - Biophysical Imaging</organization>
+            <organizationUrl>http://www.iii.uni-bonn.de/en/wachten_lab/</organizationUrl>
+            <roles>
+                <role>founder</role>
+                <role>lead</role>
+                <role>developer</role>
+                <role>debugger</role>
+                <role>reviewer</role>
+                <role>support</role>
+                <role>maintainer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id></id>
+            <name>Luis Alvarez</name>
+            <email>luis.alvarez(at)caesar.de</email>
+            <url>r</url>
+            <organization>caesar</organization>
+            <organizationUrl>https://www.caesar.de/en/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>   
+        <developer>
+            <id></id>
+            <name>An Gong</name>
+            <email>an.gong(at)caesar.de</email>
+            <url>r</url>
+            <organization>caesar</organization>
+            <organizationUrl>https://www.caesar.de/en/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>          
+    </developers>
+    
+    <contributors>
+        <!--
+        NB: Need a least one element to override the parent.
+        See: https://issues.apache.org/jira/browse/MNG-5220
+        -->
+        <contributor><name>None</name></contributor>
+    </contributors>
+ 	
+ 	<mailingLists>
+		<mailingList>
+			<name>ImageJ Forum</name>
+			<archive>http://forum.imagej.net/</archive>
+		</mailingList>
+	</mailingLists>
+ 	
+ 	<scm>
+		<connection>scm:git:git://github.com/hansenjn/MultiFocalParticleTracker-Complex-3</connection>
+		<developerConnection>scm:git:git@github.com:hansenjn/MultiFocalParticleTracker-Complex-3</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3</url>
+	</scm>
+ 	
+ 	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3/issues</url>
+	</issueManagement>
+ 	
+ 	<ciManagement>
+		<system>None</system>
+	</ciManagement>
+ 
+ 	<properties>
+		<main-class>MFPTCmain3</main-class>
+		<package-name>multiFocalParticleTracker_Complex_3</package-name>
+		<license.licenseName>gpl_v3</license.licenseName>
+		<license.copyrightOwners>Jan Niklas Hansen, Luis Alvarez, An Gong</license.copyrightOwners>
+		<license.projectName>MultiFocalParticleTracker-Complex-3</license.projectName>		
+	</properties>
+ 
+ 	 <repositories>
+    	<repository>
+            <id>imagej.public</id>
+            <url>http://maven.imagej.net/content/groups/public</url>
+        </repository>
+    </repositories>
+ 
+<!-- TODO: See Optional Dependencies section -->
+    <dependencies>
+        <!-- ImageJ dependencies -->
+        <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>ij</artifactId>
+        </dependency>     
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+    		<artifactId>commons-math3</artifactId>
+        </dependency>
+    </dependencies>  
+    
+	<build>
+<!--        <directory>target</directory> -->
+<!--     	<outputDirectory>target/classes</outputDirectory> -->
+<!--     	<finalName>${artifactId}-${version}</finalName> -->
+		<plugins>
+			<!--         avoid errors in java doc creation -->			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<projectName>MultiFocalParticleTracker-Complex-3 plugin for ImageJ.</projectName>
+					<organizationName>JNH</organizationName>
+					<descriptorRefs>
+            			<descriptorRef>jar-with-dependencies</descriptorRef>
+          			</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>${main-class}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>  
+</project>
