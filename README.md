@@ -9,3 +9,5 @@ Funding: DFG priority program SPP 1726 "Microswimmers".
 
 Contact: jan.hansen(at)uni-bonn.de
 
+## Example data
+An exemplary data set with output files can be found [here](https://github.com/hansenjn/MultifocalImaging-AnalysisToolbox/tree/master/Example%20Data/MultiFocalParticleTracker-Complex-3).
