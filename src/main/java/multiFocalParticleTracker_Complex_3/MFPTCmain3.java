@@ -189,9 +189,9 @@ public class MFPTCmain3 implements PlugIn, Measurements{
     	imp.getCalibration().pixelWidth = xyCal;	
     	rawLUT = this.readLUT(dirLUT + nameLUT);
 		LUT = this.readUpscaledLUT(dirLUT + nameLUT, upscaling);
-		LUTSD = this.readLUT(dirLUTSD + nameLUTSD);
-		LUTPrecision = getLUTPrecision(rawLUT, LUTSD);
-		LUTPrecision = upscaleLutBySplineFitter(LUTPrecision, upscaling);
+		LUTSD = this.readUpscaledLUT(dirLUTSD + nameLUTSD, upscaling);
+		LUTPrecision = getLUTPrecision(LUT, LUTSD);
+//		LUTPrecision = upscaleLutBySplineFitter(rawLUTPrecision, upscaling);
 		
 		int lutCenterPos [] = new int [LUT.length-1];
 		double LutMin, LutTemp; int LutCt;
@@ -255,7 +255,9 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 		    	output2DArray(LUT, "SplineFitted LUT", name[task], savePath + "_iLUT");
 		    	plotXY2DArray(LUT, "Spline Interpolated LUT", "Position", "Fit Width", savePath + "_iLUT", false);
 		    	plotXY2DArray(LUTSD, "Spline Interpolated SD LUT", "Position", "Standard Deviation of Fit Width", savePath + "_iLUTSD", false);
-		    	plotXY2DArray(LUTPrecision, "Precision of Spline Interpolated LUT", "Position", "z-precision (µm)", savePath + "_iLUTP", false);
+		    	output2DArray(LUTSD, "Spline Interpolated SD LUT", name[task], savePath + "_iLUTSD");
+		    	plotXY2DArray(LUTPrecision, "Precision of Spline Interpolated LUT", "Position", "z-precision (µm)", savePath + "_iLUTP", true);
+		    	output2DArray(LUTPrecision, "Precision of Spline Interpolated LUT", name[task], savePath + "_iLUTP");
 
 		    	/**
 		    	 * ANALYSIS
@@ -1388,12 +1390,29 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 			for(int i = 1; i < precisionLUT.length; i++) {
 				precisionLUT [i][0] = (LUT [0][1] - LUT [0][0]) / (LUT [i][1] - LUT [i][0]);
 				for(int j = 1; j < precisionLUT[i].length-1; j++) {
-					precisionLUT [i][j] = (LUT [0][j+1] - LUT [0][j]) / (LUT [i][j+1] - LUT [i][j]);
-					precisionLUT [i][j] += (LUT [0][j] - LUT [0][j-1]) / (LUT [i][j] - LUT [i][j-1]);
-					precisionLUT [i][j] /= 2.0;
+					if((LUT [i][j+1] - LUT [i][j]) == 0.0) {
+						precisionLUT [i][j] = Double.MAX_VALUE;
+					}else {
+						precisionLUT [i][j] = (LUT [0][j+1] - LUT [0][j]) / (LUT [i][j+1] - LUT [i][j]);
+					}
+					if((LUT [i][j] - LUT [i][j-1]) == 0.0) {
+						precisionLUT [i][j] = Double.MAX_VALUE;
+					}else {
+						precisionLUT [i][j] += (LUT [0][j] - LUT [0][j-1]) / (LUT [i][j] - LUT [i][j-1]);						
+					}
+					
+					if(precisionLUT [i][j] != Double.MAX_VALUE) {
+						precisionLUT [i][j] /= 2.0;						
+					}
 				}
-				precisionLUT [i][precisionLUT[i].length-1] = (LUT [0][LUT[i].length-1] - LUT [0][LUT[i].length-2]) 
+				
+				if((LUT [i][LUT[i].length-1] - LUT [i][LUT[i].length-2]) == 0.0) {
+					precisionLUT [i][precisionLUT[i].length-1] = Double.MAX_VALUE;
+				}else {
+					precisionLUT [i][precisionLUT[i].length-1] = (LUT [0][LUT[i].length-1] - LUT [0][LUT[i].length-2]) 
 						/ (LUT [i][LUT[i].length-1] - LUT [i][LUT[i].length-2]);
+				}
+				
 			}
 		}catch(Exception e) {
 			String out = "";
@@ -1409,6 +1428,9 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 			for(int i = 1; i < precisionLUT.length; i++) {
 				for(int j = 0; j < precisionLUT[i].length; j++) {
 					precisionLUT [i][j] = Math.abs(precisionLUT[i][j]) * sdLUT[i][j];
+					if(Double.isNaN(precisionLUT [i][j]) || precisionLUT [i][j] < 0.0) {
+						precisionLUT [i][j] = Double.MAX_VALUE;
+					}
 				}
 			}
 		}catch(Exception e) {
@@ -1509,7 +1531,6 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 		PlotWindow.noGridLines = true;
 		
 		p = new Plot(label, xLabel, yLabel);
-		p.setAxisYLog(logarithmic);
 		p.setSize(600, 400);
 		p.setLimits(xMin, xMax, 0.0, yMax);		
 		for(int i = 1; i < array.length; i++){
@@ -1521,6 +1542,9 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 		}
 		p.addLegend(legend);
 		p.setLimitsToFit(true);
+		if(logarithmic) {
+			p.setAxisYLog(logarithmic);
+		}
 		pImp = p.makeHighResolution("plot",1,true,false);
 		IJ.saveAs(pImp,"PNG",savePath + ".png");
 		pImp.changes = false;
