@@ -609,12 +609,12 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 											for(int err = 0; err < e.getStackTrace().length; err++){
 												out += " \n " + e.getStackTrace()[err].toString();
 											}
-											IJ.log("Error combo: " + out);
-											IJ.log("ID " + i + "nrOfC " + nrOfCombinations + " - selCombo " + selCombo
-													+ " - minSD " + minSD + " - widthZ[0][0] " + (radiusZ[0][0]) + " - widthZ[0][1]" + (radiusZ[0][1]) 
-													+ " - comboCounter " + comboCounter + " - widthZLength " + radiusZ.length
-													+ " - arraysize " + arraySize + " - min precision " + minPrec + " - best precision index " + bestPrecZ);
-											IJ.error("index error");
+											progress.notifyMessage("Error combo: " + out +" \n"
+													+ ("ID " + i + "nrOfC " + nrOfCombinations + " - selCombo " + selCombo
+															+ " - minSD " + minSD + " - widthZ[0][0] " + (radiusZ[0][0]) + " - widthZ[0][1]" + (radiusZ[0][1]) 
+															+ " - comboCounter " + comboCounter + " - widthZLength " + radiusZ.length
+															+ " - arraysize " + arraySize + " - min precision " + minPrec + " - best precision index " + bestPrecZ), 
+											multiFocalParticleTracker_Complex_3.jnhsupport.ProgressDialog.LOG);
 										}
 										
 //											IJ.log("ID " + i + "selected Combo: " + selCombo);
@@ -1366,25 +1366,59 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 	 * */
 	private double [][] getLUTPrecision (double LUT [][], double sdLUT [][]){
 		double [][] precisionLUT = new double [LUT.length][LUT[0].length];
-		
-		//Derive derivative of the LUT
-		for(int i = 1; i < precisionLUT.length; i++) {
-			precisionLUT [i][0] = (precisionLUT [i][1] - precisionLUT [i][0]) / (precisionLUT [0][1] - precisionLUT [0][0]);
-			for(int j = 1; j < precisionLUT[i].length-1; j++) {
-				precisionLUT [i][j] = (precisionLUT [i][j+1] - precisionLUT [i][j]) / (precisionLUT [0][j+1] - precisionLUT [0][j]);
-				precisionLUT [i][j] += (precisionLUT [i][j] - precisionLUT [i][j-1]) / (precisionLUT [0][j] - precisionLUT [0][j-1]);
-				precisionLUT [i][j] /= 2.0;
+		if(LUT[0].length != sdLUT[0].length) {
+			progress.notifyMessage("ERROR: LUT and LUT sd files do not contain same number of lines. Cannot calculate precisions.", ProgressDialog.ERROR);
+			return precisionLUT;
+		}
+		if(LUT.length != sdLUT.length) {
+			progress.notifyMessage("ERROR: LUT and LUT sd files do not contain same number of columns. Cannot calculate precisions.", ProgressDialog.ERROR);
+			return precisionLUT;
+		}
+		for(int i = 0; i < precisionLUT[0].length; i++) {
+			if(LUT[0][i] != sdLUT[0][i]) {
+				progress.notifyMessage("ERROR: LUT positions do not match sdLUT positions. Cannot calculate precisions.", ProgressDialog.ERROR);
+				return precisionLUT;
 			}
-			precisionLUT [i][precisionLUT[i].length-1] = (precisionLUT [i][precisionLUT[i].length-1] - precisionLUT [i][precisionLUT[i].length-2]) 
-					/ (precisionLUT [0][precisionLUT[i].length-1] - precisionLUT [0][precisionLUT[i].length-2]);
+			precisionLUT[0][i] = LUT [0][i];
 		}
 		
-		//Convert derivative to precision by multiplication of the absolute derivative with the standard deviation of the LUT
-		for(int i = 1; i < precisionLUT.length; i++) {
-			for(int j = 0; j < precisionLUT[i].length; j++) {
-				precisionLUT [i][j] = Math.abs(precisionLUT[i][j])*sdLUT[i][j];
+		try {
+			//Derive derivative of the LUT
+			for(int i = 1; i < precisionLUT.length; i++) {
+				precisionLUT [i][0] = (LUT [i][1] - LUT [i][0]) / (LUT [0][1] - LUT [0][0]);
+				for(int j = 1; j < precisionLUT[i].length-1; j++) {
+					precisionLUT [i][j] = (LUT [i][j+1] - LUT [i][j]) / (LUT [0][j+1] - LUT [0][j]);
+					precisionLUT [i][j] += (LUT [i][j] - LUT [i][j-1]) / (LUT [0][j] - LUT [0][j-1]);
+					precisionLUT [i][j] /= 2.0;
+				}
+				precisionLUT [i][precisionLUT[i].length-1] = (LUT [i][LUT[i].length-1] - LUT [i][LUT[i].length-2]) 
+						/ (LUT [0][LUT[i].length-1] - LUT [0][LUT[i].length-2]);
 			}
-		}		
+		}catch(Exception e) {
+			String out = "";
+			for(int err = 0; err < e.getStackTrace().length; err++){
+				out += " \n " + e.getStackTrace()[err].toString();
+			}
+			progress.notifyMessage("ERROR in LUT interpretation: " + out, ProgressDialog.ERROR);
+			return precisionLUT;
+		}	
+		
+		try {
+			//Convert derivative to precision by multiplication of the absolute derivative with the standard deviation of the LUT
+			for(int i = 1; i < precisionLUT.length; i++) {
+				for(int j = 0; j < precisionLUT[i].length; j++) {
+					precisionLUT [i][j] = Math.abs(precisionLUT[i][j])*sdLUT[i][j];
+				}
+			}
+		}catch(Exception e) {
+			String out = "";
+			for(int err = 0; err < e.getStackTrace().length; err++){
+				out += " \n " + e.getStackTrace()[err].toString();
+			}
+			progress.notifyMessage("ERROR in LUT-SD interpretation: " + out, ProgressDialog.ERROR);
+			return precisionLUT;
+		}
+			
 		return precisionLUT;
 	}
 	
