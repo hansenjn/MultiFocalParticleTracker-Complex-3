@@ -1384,16 +1384,16 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 		}
 		
 		try {
-			//Derive derivative of the LUT
+			//Derive inverse derivative of the LUT
 			for(int i = 1; i < precisionLUT.length; i++) {
-				precisionLUT [i][0] = (LUT [i][1] - LUT [i][0]) / (LUT [0][1] - LUT [0][0]);
+				precisionLUT [i][0] = (LUT [0][1] - LUT [0][0]) / (LUT [i][1] - LUT [i][0]);
 				for(int j = 1; j < precisionLUT[i].length-1; j++) {
-					precisionLUT [i][j] = (LUT [i][j+1] - LUT [i][j]) / (LUT [0][j+1] - LUT [0][j]);
-					precisionLUT [i][j] += (LUT [i][j] - LUT [i][j-1]) / (LUT [0][j] - LUT [0][j-1]);
+					precisionLUT [i][j] = (LUT [0][j+1] - LUT [0][j]) / (LUT [i][j+1] - LUT [i][j]);
+					precisionLUT [i][j] += (LUT [0][j] - LUT [0][j-1]) / (LUT [i][j] - LUT [i][j-1]);
 					precisionLUT [i][j] /= 2.0;
 				}
-				precisionLUT [i][precisionLUT[i].length-1] = (LUT [i][LUT[i].length-1] - LUT [i][LUT[i].length-2]) 
-						/ (LUT [0][LUT[i].length-1] - LUT [0][LUT[i].length-2]);
+				precisionLUT [i][precisionLUT[i].length-1] = (LUT [0][LUT[i].length-1] - LUT [0][LUT[i].length-2]) 
+						/ (LUT [i][LUT[i].length-1] - LUT [i][LUT[i].length-2]);
 			}
 		}catch(Exception e) {
 			String out = "";
