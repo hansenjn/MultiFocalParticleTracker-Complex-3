@@ -11,7 +11,7 @@
  
     <artifactId>MultiFocalParticleTracker_Complex3</artifactId>
     <groupId>JNH</groupId>
-    <version>0.0.8-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
  
 <!-- TODO: Fill out these sections -->
     <name>MultiFocalParticleTracker-Complex-3</name>

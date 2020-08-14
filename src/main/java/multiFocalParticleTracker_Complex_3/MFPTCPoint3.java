@@ -1,6 +1,6 @@
 /***===============================================================================
  
- https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3, Version v0.0.8
+ https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3, Version v0.1.0
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -23,10 +23,12 @@
 package multiFocalParticleTracker_Complex_3;
 
 public class MFPTCPoint3{
-	private double x,y,correctedZFact,correctedZDiff,z,zByRadiusMethod2;
+	private double x,y,correctedZFact,correctedZDiff,z,zByRadiusMethod2,zByPrecise; // zByPrecise new from version 0.1.0
 	private int t;
 	String selectedZCombo = "";
+	String selectedZComboPrecision = ""; // new from version 0.1.0
 	double [] selZComboAsArray = new double [0];
+	double [] selZComboAsArrayPrecision = new double [0]; // new from version 0.1.0
 	double [] correctionFactors = new double [0];
 	double [] correctionDifference = new double [0];
 	String involvedPlanes = "";
@@ -47,6 +49,7 @@ public class MFPTCPoint3{
 		correctedZDiff = Double.NaN;
 		z = Double.NaN;
 		zByRadiusMethod2 = Double.NaN;
+		zByPrecise = Double.NaN;
 		nrOfInvolvedPlanes = 0;
 		
 		fitX = new double [nSlices];
@@ -96,6 +99,10 @@ public class MFPTCPoint3{
 		return zByRadiusMethod2;
 	}
 	
+	public double zByPreciseMethod(){
+		return zByPrecise;
+	}
+	
 	public int getNrOfInvolvedPlanes(){
 		return nrOfInvolvedPlanes;
 		
@@ -116,9 +123,17 @@ public class MFPTCPoint3{
 	void setZByRadiusMethod2(double newZ){
 		zByRadiusMethod2 = newZ;
 	}
+	
+	void setZByPrecise(double newZ){
+		zByPrecise = newZ;
+	}
 		
 	void setSelectedZCombo(String combo){
 		selectedZCombo = "" + combo;
+	}
+	
+	void setSelectedZComboPrecisions(String combo){
+		selectedZComboPrecision = "" + combo;
 	}
 	
 	void setSelectedZComboAsArray(double [] selZComboArray){
@@ -127,6 +142,14 @@ public class MFPTCPoint3{
 			selZComboAsArray [i] = selZComboArray [i]; 
 		}
 	}
+	
+	void setSelectedZComboAsArrayPrecisions(double [] selZComboArrayPrec){
+		selZComboAsArrayPrecision = new double [selZComboArrayPrec.length];
+		for(int i = 0; i < selZComboArrayPrec.length; i++){
+			selZComboAsArrayPrecision [i] = selZComboArrayPrec [i]; 
+		}
+	}
+	
 	
 	void setInvolvedPlanes(String combo){
 		involvedPlanes = "" + combo;
@@ -153,6 +176,13 @@ public class MFPTCPoint3{
 	
 	public boolean zDef(){
 		if(Double.isNaN(z)){
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean zPreciseDef(){
+		if(Double.isNaN(zByPrecise)){
 			return false;
 		}
 		return true;

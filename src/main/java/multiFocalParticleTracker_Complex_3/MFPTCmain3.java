@@ -1,6 +1,6 @@
 /***===============================================================================
  
- https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3, Version v0.0.8
+ https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3, Version v0.1.0
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ import multiFocalParticleTracker_Complex_3.jnhsupport.*;
 public class MFPTCmain3 implements PlugIn, Measurements{
 	//Name
 		public static final String PLUGINNAME = "MultiFocalParticleTracker-Complex-3";
-		public static final String PLUGINVERSION = "v0.0.8";
+		public static final String PLUGINVERSION = "v0.1.0";
 		
 		double xyCal = 0.34375;	//0.34375 for 32x, 0.55 for 20x		
 		int maxRadius = 10;
@@ -152,8 +152,10 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 		String nameImage = "";
     	String dirImage = "";
     	String nameLUT = "";
-    	String dirLUT = "";    	
-		double rawLUT [][], LUT [][];
+    	String dirLUT = "";   
+    	String nameLUTSD = "";
+    	String dirLUTSD = "";    	
+		double rawLUT [][], LUT [][], LUTSD [][], LUTPrecision [][];
 		
 				
 		{
@@ -170,6 +172,13 @@ public class MFPTCmain3 implements PlugIn, Measurements{
     		progress.replaceBarText("Open corresponding LUT file (.txt)");
     		nameLUT = oLUT.getFileName();
 	    	dirLUT = oLUT.getDirectory();
+	    	
+	    	// get sd of look up table location
+	    	OpenDialog oLUTSD;	    	
+    		oLUTSD = new OpenDialog("Open corresponding LUT standard deviation file (.txt)", null);
+    		progress.replaceBarText("Open corresponding LUT standard deviation file (.txt)");
+    		nameLUTSD = oLUTSD.getFileName();
+	    	dirLUTSD = oLUTSD.getDirectory();
 		}
 		System.gc();
 		
@@ -180,6 +189,9 @@ public class MFPTCmain3 implements PlugIn, Measurements{
     	imp.getCalibration().pixelWidth = xyCal;	
     	rawLUT = this.readLUT(dirLUT + nameLUT);
 		LUT = this.readUpscaledLUT(dirLUT + nameLUT, upscaling);
+		LUTSD = this.readUpscaledLUT(dirLUTSD + nameLUTSD, upscaling);
+		LUTPrecision = getLUTPrecision(LUT, LUTSD);
+		
 		int lutCenterPos [] = new int [LUT.length-1];
 		double LutMin, LutTemp; int LutCt;
 
@@ -241,6 +253,8 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 		    	plotXY2DArray(LUT, "Raw LUT", "Position", "Fit Width", savePath + "_rawLUT", false);
 		    	output2DArray(LUT, "SplineFitted LUT", name[task], savePath + "_iLUT");
 		    	plotXY2DArray(LUT, "Spline Interpolated LUT", "Position", "Fit Width", savePath + "_iLUT", false);
+		    	plotXY2DArray(LUTSD, "Spline Interpolated SD LUT", "Position", "Standard Deviation of Fit Width", savePath + "_iLUTSD", false);
+		    	plotXY2DArray(LUTPrecision, "Precision of Spline Interpolated LUT", "Position", "z-precision (µm)", savePath + "_iLUTP", false);
 
 		    	/**
 		    	 * ANALYSIS
@@ -261,12 +275,15 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 						String out;
 						double [][] radiiNew; //[nr][0 = value, 1 = slicePos]
 						double [][] radiusZ;
+						double [][] radiusZPrecision;
 						boolean [] keepPlane;
 						boolean keep1, keep2;
 						int selCombo, minDifferencePos;
 						double finalZ, minSD, SD, minDifference, differenceTemp;
 						String selectedZCombo;
+						String selectedZComboPrecision;
 						double selZCombo [] = new double [imp.getNSlices()];
+						double selZComboPrecision [] = new double [imp.getNSlices()];
 						double positions [] = new double [maxRadius*2+1];
 						for(int i = 0; i < maxRadius*2+1; i++){
 							positions [i] = i - maxRadius;
@@ -280,7 +297,9 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 						int frame;
 						
 						//z method one
-						double [][] zValues;
+						double [][] zValues, zValuesPrecision;
+						int bestPrecZ;
+						double minPrec;
 						int nrOfCombinations;
 						int comboCounter;
 						int wZPsCounter;
@@ -416,6 +435,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 										 * Searching LUT for best matches in planes
 										 * */
 										radiusZ = new double [nrOfValues][2];
+										radiusZPrecision = new double [nrOfValues][2];
 										keepPlane = new boolean [nrOfValues];
 										for(int wz = 0; wz < nrOfValues; wz++){
 											minDifference = Double.POSITIVE_INFINITY;
@@ -430,6 +450,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 											}
 //											radiusZ[wz][0] = slicePosition [(int)radiiNew[wz][1]-1] + LUT[0][minDifferencePos];
 											radiusZ[wz][0] = LUT[0][minDifferencePos];
+											radiusZPrecision[wz][0] = LUTPrecision[(int)radiiNew[wz][1]][minDifferencePos];
 											
 											keep1 = checkMinPositionInLUT((int)radiiNew[wz][1],minDifferencePos, LUT, radiiNew[wz][0]);
 											
@@ -445,6 +466,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 											}
 //											widthsZ[wz][1] = slicePosition [(int)widthsNew[wz][1]-1] + LUT[0][minDifferencePos];
 											radiusZ[wz][1] = LUT[0][minDifferencePos];
+											radiusZPrecision[wz][1] = LUTPrecision[(int)radiiNew[wz][1]][minDifferencePos];
 											keep2 = checkMinPositionInLUT((int)radiiNew[wz][1],minDifferencePos, LUT, radiiNew[wz][0]);
 											if(keep1 || keep2){
 												keepPlane [wz] = true;
@@ -507,11 +529,13 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 									
 									/**
 									 * Width Method 1 -> Combining
+									 * Also including method for best precision selection from version v0.1.0 on
 									 * */
 									if(wzArraySize > 0 && arraySize > 1){
 										//calculate nr of combinations
 										nrOfCombinations = (int) Math.pow(2, wzArraySize);
 										zValues = new double [nrOfCombinations][arraySize];
+										zValuesPrecision = new double [nrOfCombinations][arraySize];
 										
 										//create all combinations
 										comboCounter = 0;
@@ -523,11 +547,13 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 												for(int w = 0; w < Math.pow(2,wZPsCounter); w++){
 //														combinations [comboCounter] += "0";
 													zValues [comboCounter][wZPsCounter] = radiusZ [wZPs][0];	//minus
+													zValuesPrecision [comboCounter][wZPsCounter] = radiusZPrecision [wZPs][0];	//minus
 													comboCounter++;
 												}
 												for(int w = 0; w < Math.pow(2,wZPsCounter); w++){
 //														combinations [comboCounter] += "1";
 													zValues [comboCounter][wZPsCounter] = radiusZ [wZPs][1];	//plus
+													zValuesPrecision [comboCounter][wZPsCounter] = radiusZPrecision [wZPs][1];	//plus
 													comboCounter++;
 												}
 											}
@@ -547,6 +573,8 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 										
 										minSD = Double.MAX_VALUE;
 										selCombo = -1;
+										minPrec = Double.POSITIVE_INFINITY;
+										bestPrecZ = -1;
 //											IJ.log("combinations");
 										for(int nrC = 0; nrC < nrOfCombinations; nrC++){
 //												IJ.log("combination " + combinations [nrC]);
@@ -566,6 +594,16 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 											if(finalZ == Double.NEGATIVE_INFINITY)	IJ.log("finalZ is negative infinity");
 											if(finalZ == Double.POSITIVE_INFINITY)	IJ.log("finalZ is positive infinity");
 											track.get(i).setZ(finalZ);
+											
+											//select z with best precision
+											for(int pr = 0; pr < zValues[selCombo].length; pr++){
+												if(zValuesPrecision[selCombo][pr] < minPrec) {
+													minPrec = zValuesPrecision[selCombo][pr];
+													bestPrecZ = pr;
+												}
+											}
+											track.get(i).setZByPrecise(zValues[selCombo][bestPrecZ]);											
+											
 										}catch(Exception e){
 											out = "";
 											for(int err = 0; err < e.getStackTrace().length; err++){
@@ -575,20 +613,27 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 											IJ.log("ID " + i + "nrOfC " + nrOfCombinations + " - selCombo " + selCombo
 													+ " - minSD " + minSD + " - widthZ[0][0] " + (radiusZ[0][0]) + " - widthZ[0][1]" + (radiusZ[0][1]) 
 													+ " - comboCounter " + comboCounter + " - widthZLength " + radiusZ.length
-													+ " - arraysize " + arraySize);
+													+ " - arraysize " + arraySize + " - min precision " + minPrec + " - best precision index " + bestPrecZ);
 											IJ.error("index error");
 										}
 										
 //											IJ.log("ID " + i + "selected Combo: " + selCombo);
 										selectedZCombo = "";
+										selectedZComboPrecision = "";
 										Arrays.fill(selZCombo,Double.NaN);
+										Arrays.fill(selZComboPrecision,Double.NaN);
 										for(int r = 0; r < zValues[selCombo].length; r++){
 											selectedZCombo += (", " + zValues[selCombo][r]);
 											selZCombo [(int)(radiiNew[r][1]) - 1] = zValues[selCombo][r];
+											selectedZComboPrecision += (", " + zValuesPrecision[selCombo][r]);
+											selZComboPrecision [(int)(radiiNew[r][1]) - 1] = zValuesPrecision[selCombo][r];
 										}
 										if(selectedZCombo.length()>0)	selectedZCombo = selectedZCombo.substring(2);
+										if(selectedZComboPrecision.length()>0)	selectedZComboPrecision = selectedZComboPrecision.substring(2);
 										track.get(i).setSelectedZCombo(selectedZCombo);
 										track.get(i).setSelectedZComboAsArray(selZCombo);
+										track.get(i).setSelectedZComboPrecisions(selectedZComboPrecision);
+										track.get(i).setSelectedZComboAsArrayPrecisions(selZComboPrecision);
 									}else{
 //										track.get(i).setZByWidthsMethod2(Double.NaN);
 //										progress.notifyMessage("X " + constants.df0.format(track.get(i).X()) 
@@ -847,7 +892,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 					  	tp.append("Saving date:	" + constants.dateTab.format(new Date()) + "	Analysis started:	" + constants.dateTab.format(startDate));
 						tp.append("Processed file:	" + name [task]);
 						tp.append("Processed image:	" + nameImage);
-						tp.append("LUT file:	" + nameLUT);
+						tp.append("LUT file:	" + nameLUT + "	LUT SD file:	" + nameLUTSD);
 						tp.append("");
 						tp.append("Settings: ");
 						tp.append("	" + "xy calibration [um]:	" + constants.df6US.format(xyCal));
@@ -859,12 +904,13 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 						tp.append("");
 						
 						String appendTxt = "";
-						appendTxt = "index	T	X (µm)	Y (µm)	Z average (µm)	factor-corr. Z avg (µm)	diff-corr. Z avg (µm)"
+						appendTxt = "index	T	X (µm)	Y (µm)	Z average (µm)	factor-corr. Z avg (µm)	diff-corr. Z avg (µm)	Z from precisest plane (µm)"
 								+ "	" + "radius plane 1 (µm)	radius plane 2 (µm)	radius plane 3 (µm)	radius plane 4 (µm)	chosen combination"
 								+ "	" + "radius-derived Z (µm) (method 2)" 
 								+ "	" + "number of used planes (method 2)"
 								+ "	" + "IDs of used planes (method 2)			"
-								+ "	" + "z plane 1 (µm)	z plane 2 (µm)	z plane 3 (µm)	z plane 4 (µm)";
+								+ "	" + "z plane 1 (µm)	z plane 2 (µm)	z plane 3 (µm)	z plane 4 (µm)"
+								+ "	" + "z precision plane 1 (µm)	z precision plane 2 (µm)	z precision plane 3 (µm)	z precision plane 4 (µm)";
 						tp.append(appendTxt);
 						tp2.append(appendTxt);
 						
@@ -887,6 +933,11 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 							appendTxt += "	";
 							if(track.get(i).zCorrDefDiff()){
 								appendTxt += constants.df6US.format(track.get(i).zAvgCorrectedDiff());
+							}
+							
+							appendTxt += "	";
+							if(track.get(i).zPreciseDef()){
+								appendTxt += constants.df6US.format(track.get(i).zByPreciseMethod());
 							}
 							
 							for(int s = 0; s < imp.getNSlices(); s++){
@@ -923,12 +974,30 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 								for(int j = 0; j < track.get(i).selZComboAsArray.length; j++){
 									appendTxt += "	";
 									if(!Double.isNaN(track.get(i).selZComboAsArray[j]))	appendTxt += constants.df6US.format(track.get(i).selZComboAsArray[j]);	
-								}								
+								}
+								for(int j = 0; j < imp.getNSlices() - track.get(i).selZComboAsArray.length; j++) {
+									appendTxt += "	";
+								}
 							}else{
 								for(int j = 0; j < imp.getNSlices(); j++){
 									appendTxt += "	";										
 								}
-							}														
+							}
+							
+							if(track.get(i).selZComboAsArrayPrecision.length!=0){
+								for(int j = 0; j < track.get(i).selZComboAsArrayPrecision.length; j++){
+									appendTxt += "	";
+									if(!Double.isNaN(track.get(i).selZComboAsArrayPrecision[j]))	appendTxt += constants.df6US.format(track.get(i).selZComboAsArrayPrecision[j]);	
+								}
+								for(int j = 0; j < imp.getNSlices() - track.get(i).selZComboAsArray.length; j++) {
+									appendTxt += "	";
+								}
+							}else{
+								for(int j = 0; j < imp.getNSlices(); j++){
+									appendTxt += "	";										
+								}
+							}
+							
 							tp.append(appendTxt);
 							tp2.append(appendTxt);
 							progress.addToBar(0.1/(double)track.size());
@@ -1286,6 +1355,37 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 			return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * Calculates the precision of the LUT
+	 * (New from version 0.1.0 on)
+	 * @author Luis Alvarez, translated from Matlab to Java by Jan N. Hansen
+	 * @param LUT = the LUT array
+	 * @param sdLUT = the array describing the standard deviation of the LUT, must be same dimension as the LUT array.
+	 * */
+	private double [][] getLUTPrecision (double LUT [][], double sdLUT [][]){
+		double [][] precisionLUT = new double [LUT.length][LUT[0].length];
+		
+		//Derive derivative of the LUT
+		for(int i = 1; i < precisionLUT.length; i++) {
+			precisionLUT [i][0] = (precisionLUT [i][1] - precisionLUT [i][0]) / (precisionLUT [0][1] - precisionLUT [0][0]);
+			for(int j = 1; j < precisionLUT[i].length-1; j++) {
+				precisionLUT [i][j] = (precisionLUT [i][j+1] - precisionLUT [i][j]) / (precisionLUT [0][j+1] - precisionLUT [0][j]);
+				precisionLUT [i][j] += (precisionLUT [i][j] - precisionLUT [i][j-1]) / (precisionLUT [0][j] - precisionLUT [0][j-1]);
+				precisionLUT [i][j] /= 2.0;
+			}
+			precisionLUT [i][precisionLUT[i].length-1] = (precisionLUT [i][precisionLUT[i].length-1] - precisionLUT [i][precisionLUT[i].length-2]) 
+					/ (precisionLUT [0][precisionLUT[i].length-1] - precisionLUT [0][precisionLUT[i].length-2]);
+		}
+		
+		//Convert derivative to precision by multiplication of the absolute derivative with the standard deviation of the LUT
+		for(int i = 1; i < precisionLUT.length; i++) {
+			for(int j = 0; j < precisionLUT[i].length; j++) {
+				precisionLUT [i][j] = Math.abs(precisionLUT[i][j])*sdLUT[i][j];
+			}
+		}		
+		return precisionLUT;
 	}
 	
 	private static void output2DArray(double [][] array, String name, String nameImage, String savePath){
