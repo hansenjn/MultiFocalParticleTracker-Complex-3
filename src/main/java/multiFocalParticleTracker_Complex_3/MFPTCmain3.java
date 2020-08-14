@@ -241,6 +241,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 			  		break running;
 		    	}				
 				
+				
 				//determine save path
 		    	String savePath;
 		    	if(name[task].contains(".")){
