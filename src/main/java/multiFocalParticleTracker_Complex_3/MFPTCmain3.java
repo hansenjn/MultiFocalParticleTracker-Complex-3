@@ -189,8 +189,9 @@ public class MFPTCmain3 implements PlugIn, Measurements{
     	imp.getCalibration().pixelWidth = xyCal;	
     	rawLUT = this.readLUT(dirLUT + nameLUT);
 		LUT = this.readUpscaledLUT(dirLUT + nameLUT, upscaling);
-		LUTSD = this.readUpscaledLUT(dirLUTSD + nameLUTSD, upscaling);
-		LUTPrecision = getLUTPrecision(LUT, LUTSD);
+		LUTSD = this.readLUT(dirLUTSD + nameLUTSD);
+		LUTPrecision = getLUTPrecision(rawLUT, LUTSD);
+		LUTPrecision = upscaleLutBySplineFitter(LUTPrecision, upscaling);
 		
 		int lutCenterPos [] = new int [LUT.length-1];
 		double LutMin, LutTemp; int LutCt;
@@ -1407,7 +1408,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 			//Convert derivative to precision by multiplication of the absolute derivative with the standard deviation of the LUT
 			for(int i = 1; i < precisionLUT.length; i++) {
 				for(int j = 0; j < precisionLUT[i].length; j++) {
-					precisionLUT [i][j] = Math.abs(precisionLUT[i][j])*sdLUT[i][j];
+					precisionLUT [i][j] = Math.abs(precisionLUT[i][j]) * sdLUT[i][j];
 				}
 			}
 		}catch(Exception e) {
