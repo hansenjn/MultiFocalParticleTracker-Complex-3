@@ -52,7 +52,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 		double xyCal = 0.34375;	//0.34375 for 32x, 0.55 for 20x		
 		int maxRadius = 10;
 		boolean savePlot = false;
-		double widthThresholdMin = 1.5, widthThresholdMax = 4.5;
+		double widthThresholdMin = 0.0, widthThresholdMax = 10.0;
 		int upscaling = 10;
 		
 		ProgressDialog progress;
