@@ -659,7 +659,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 										LUTValue = Double.NaN;;
 										includedPlanes = "";									
 										for(int wz = 0; wz < radiiNew.length; wz++){
-											includedPlanes += constants.df0.format(radiiNew[wz][1]) + "	";
+											includedPlanes += constants.df0.format(radiiNew[wz][1]) + ", ";
 											if(savePlot)	Arrays.fill(diffPlot[wz], Double.NaN);
 											for(int pos = 0; pos < LUT[0].length; pos++){
 												if(LUT[(int)radiiNew[wz][1]][pos] != Double.NEGATIVE_INFINITY){
@@ -692,10 +692,9 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 //													IJ.log("DOUBLE NAN " + LUT[(int)widthsNew[wz][1]][pos]);
 												}
 											}
-										}									
-										includedPlanes.substring(0, includedPlanes.length()-1);
-										while(includedPlanes.split("	",-1).length < 3){
-											includedPlanes += "	";											
+										}				
+										if(includedPlanes.length() > 0) {
+											includedPlanes.substring(0, includedPlanes.length()-2);
 										}
 										track.get(i).setInvolvedPlanes(includedPlanes);									
 										
@@ -912,9 +911,10 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 								+ "	" + "radius plane 1 (µm)	radius plane 2 (µm)	radius plane 3 (µm)	radius plane 4 (µm)	chosen combination"
 								+ "	" + "radius-derived Z (µm) (method 2)" 
 								+ "	" + "number of used planes (method 2)"
-								+ "	" + "IDs of used planes (method 2)			"
+								+ "	" + "IDs of used planes (method 2)"
 								+ "	" + "z plane 1 (µm)	z plane 2 (µm)	z plane 3 (µm)	z plane 4 (µm)"
-								+ "	" + "z precision plane 1 (µm)	z precision plane 2 (µm)	z precision plane 3 (µm)	z precision plane 4 (µm)";
+								+ "	" + "z precision plane 1 (µm)	z precision plane 2 (µm)	z precision plane 3 (µm)	z precision plane 4 (µm)"
+								+ "	" + "precisest plane";
 						tp.append(appendTxt);
 						tp2.append(appendTxt);
 						
@@ -969,10 +969,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 							appendTxt += "	";
 							if(!Double.isNaN(track.get(i).zByRadiusCentMethod2())){
 								appendTxt += track.get(i).involvedPlanes;
-							}else{
-								appendTxt += "			";
 							}
-							
 							
 							if(track.get(i).selZComboAsArray.length!=0){
 								for(int j = 0; j < track.get(i).selZComboAsArray.length; j++){
@@ -999,6 +996,16 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 							}else{
 								for(int j = 0; j < imp.getNSlices(); j++){
 									appendTxt += "	";										
+								}
+							}
+							
+							appendTxt += "	";	
+							for(int j = 0; j < track.get(i).selZComboAsArray.length; j++){
+								if(!Double.isNaN(track.get(i).selZComboAsArray[j]) && !Double.isNaN(track.get(i).zByPreciseMethod())) {
+									if(track.get(i).selZComboAsArray[j] == track.get(i).zByPreciseMethod()) {
+										appendTxt += constants.df0.format(j+1);
+										break;
+									}
 								}
 							}
 							
