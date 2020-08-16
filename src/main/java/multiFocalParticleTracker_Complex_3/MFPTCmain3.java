@@ -160,23 +160,23 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 				
 		{
 			// get image location
-	    	OpenDialog oImage;	    	
-    		oImage = new OpenDialog("Open corresponding image", null);
+	    	OpenDialog oImage;
     		progress.replaceBarText("Open corresponding image");
+    		oImage = new OpenDialog("Open corresponding image", null);
     		nameImage = oImage.getFileName();
 	    	dirImage = oImage.getDirectory();
 	    	
 	    	// get look up table location
-	    	OpenDialog oLUT;	    	
-    		oLUT = new OpenDialog("Open corresponding LUT file (.txt)", null);
+	    	OpenDialog oLUT;
     		progress.replaceBarText("Open corresponding LUT file (.txt)");
+    		oLUT = new OpenDialog("Open corresponding LUT file (.txt)", null);
     		nameLUT = oLUT.getFileName();
 	    	dirLUT = oLUT.getDirectory();
 	    	
 	    	// get sd of look up table location
 	    	OpenDialog oLUTSD;	    	
-    		oLUTSD = new OpenDialog("Open corresponding LUT standard deviation file (.txt)", null);
     		progress.replaceBarText("Open corresponding LUT standard deviation file (.txt)");
+    		oLUTSD = new OpenDialog("Open corresponding LUT standard deviation file (.txt)", null);
     		nameLUTSD = oLUTSD.getFileName();
 	    	dirLUTSD = oLUTSD.getDirectory();
 		}
@@ -694,7 +694,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 											}
 										}				
 										if(includedPlanes.length() > 0) {
-											includedPlanes.substring(0, includedPlanes.length()-2);
+											includedPlanes = includedPlanes.substring(0, includedPlanes.length()-2);
 										}
 										track.get(i).setInvolvedPlanes(includedPlanes);									
 										
