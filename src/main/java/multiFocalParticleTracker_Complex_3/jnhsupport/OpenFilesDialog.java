@@ -2,6 +2,7 @@ package multiFocalParticleTracker_Complex_3.jnhsupport;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -128,22 +129,41 @@ public class OpenFilesDialog extends javax.swing.JFrame implements ActionListene
 	@Override
 	public void actionPerformed(ActionEvent ae) {
 		Object eventQuelle = ae.getSource();
-		if (eventQuelle == loadButton){
-			JFileChooser chooser = new JFileChooser();
-			chooser.setPreferredSize(new Dimension(600,400));
-			if(dirsaved){				
-				chooser.setCurrentDirectory(saved);
-			}			
-			chooser.setMultiSelectionEnabled(true);
-			Component frame = null;
-			chooser.showOpenDialog(frame);
-			File[] files = chooser.getSelectedFiles();
-			for(int i = 0; i < files.length; i++){
-//				IJ.log("" + files[i].getPath());
-				filesToOpen.add(files[i]);
-				saved = files[i];
-				dirsaved=true;
-			}			
+		if (eventQuelle == loadButton) {
+			String OS = System.getProperty("os.name").toUpperCase();			
+			if(OS.contains("MAC")) {
+				java.awt.FileDialog fd = new java.awt.FileDialog(this, "Select files to add to list.");
+				fd.setDirectory(System.getProperty("user.dir", "."));
+				if (dirsaved) {
+					fd.setDirectory(saved.getPath());
+				}
+				fd.setMultipleMode(true);
+				fd.setMode(FileDialog.LOAD);
+				fd.setVisible(true);
+				
+				File[] files = fd.getFiles();
+				for (int i = 0; i < files.length; i++) {
+					filesToOpen.add(files[i]);
+					saved = files[i];
+					dirsaved = true;
+				}
+			}else {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setPreferredSize(new Dimension(600, 400));
+				chooser.setCurrentDirectory(new File(System.getProperty("user.dir", ".")));
+				if (dirsaved) {
+					chooser.setCurrentDirectory(saved);
+				}
+				chooser.setMultiSelectionEnabled(true);
+				Component frame = null;
+				chooser.showOpenDialog(frame);
+				File[] files = chooser.getSelectedFiles();
+				for (int i = 0; i < files.length; i++) {
+					filesToOpen.add(files[i]);
+					saved = files[i];
+					dirsaved = true;
+				}
+			}
 			updateDisplay();
 		}
 		if (eventQuelle == removeButton){
