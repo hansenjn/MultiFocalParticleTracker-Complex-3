@@ -11,7 +11,7 @@
  
     <artifactId>MultiFocalParticleTracker_Complex3</artifactId>
     <groupId>JNH</groupId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
  
     <name>MultiFocalParticleTracker-Complex-3</name>
     <description>An imagej plugin to track spherical objects in four-focal images.</description>    

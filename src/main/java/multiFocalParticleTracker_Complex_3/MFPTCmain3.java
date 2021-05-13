@@ -1,6 +1,6 @@
 /***===============================================================================
  
- https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3, Version v0.1.0
+ https://github.com/hansenjn/MultiFocalParticleTracker-Complex-3, Version v0.1.1
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -14,7 +14,7 @@
  See the GNU General Public License for more details.
  
  @authors Jan N Hansen, Luis Alvarez, An Gong
- @copyright (C) 2018-2020: Jan N Hansen, Luis Alvarez, An Gong
+ @copyright (C) 2018-2021: Jan N Hansen, Luis Alvarez, An Gong
    
  For any questions please feel free to contact me (jan.hansen@uni-bonn.de).
 
@@ -41,13 +41,12 @@ import ij.measure.*;
 import ij.measure.SplineFitter;
 import ij.plugin.*;
 import ij.text.TextPanel;
-import multiFocalParticleTracker_Complex_3.MFPT_FitCircle_AG;
 import multiFocalParticleTracker_Complex_3.jnhsupport.*;
 
 public class MFPTCmain3 implements PlugIn, Measurements{
 	//Name
 		public static final String PLUGINNAME = "MultiFocalParticleTracker-Complex-3";
-		public static final String PLUGINVERSION = "v0.1.0";
+		public static final String PLUGINVERSION = "v0.1.1";
 		
 		double xyCal = 0.34375;	//0.34375 for 32x, 0.55 for 20x		
 		int maxRadius = 10;
@@ -156,7 +155,8 @@ public class MFPTCmain3 implements PlugIn, Measurements{
     	String nameLUTSD = "";
     	String dirLUTSD = "";    	
 		double rawLUT [][], LUT [][], LUTSD [][], LUTPrecision [][];
-		
+		double tempVal1;
+		int tempVal2;
 				
 		{
 			// get image location
@@ -914,7 +914,8 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 								+ "	" + "IDs of used planes (method 2)"
 								+ "	" + "z plane 1 (µm)	z plane 2 (µm)	z plane 3 (µm)	z plane 4 (µm)"
 								+ "	" + "z precision plane 1 (µm)	z precision plane 2 (µm)	z precision plane 3 (µm)	z precision plane 4 (µm)"
-								+ "	" + "precisest plane";
+								+ "	" + "precisest plane" 
+								+ "	" + "best precision ('BestPrec')";
 						tp.append(appendTxt);
 						tp2.append(appendTxt);
 						
@@ -990,7 +991,7 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 									appendTxt += "	";
 									if(!Double.isNaN(track.get(i).selZComboAsArrayPrecision[j]))	appendTxt += constants.df6US.format(track.get(i).selZComboAsArrayPrecision[j]);	
 								}
-								for(int j = 0; j < imp.getNSlices() - track.get(i).selZComboAsArray.length; j++) {
+								for(int j = 0; j < imp.getNSlices() - track.get(i).selZComboAsArrayPrecision.length; j++) {
 									appendTxt += "	";
 								}
 							}else{
@@ -999,18 +1000,27 @@ public class MFPTCmain3 implements PlugIn, Measurements{
 								}
 							}
 							
-							appendTxt += "	";	
-							for(int j = 0; j < track.get(i).selZComboAsArray.length; j++){
-								if(!Double.isNaN(track.get(i).selZComboAsArray[j]) && !Double.isNaN(track.get(i).zByPreciseMethod())) {
-									if(track.get(i).selZComboAsArray[j] == track.get(i).zByPreciseMethod()) {
-										appendTxt += constants.df0.format(j+1);
-										break;
+							tempVal1 = Double.POSITIVE_INFINITY;
+							tempVal2 = -1;
+							for(int j = 0; j < track.get(i).selZComboAsArrayPrecision.length; j++){
+								if(!Double.isNaN(track.get(i).selZComboAsArrayPrecision[j])) {
+									if(track.get(i).selZComboAsArrayPrecision[j] < tempVal1) {
+										tempVal1 = track.get(i).selZComboAsArrayPrecision[j];
+										tempVal2 = j+1;
 									}
 								}
 							}
 							
+							if(tempVal2 != -1) {
+								appendTxt += "	" + constants.df0.format(tempVal2);	
+								appendTxt += "	" + constants.df6US.format(tempVal1);								
+							}else {
+								appendTxt += "		";
+							}
+							
 							tp.append(appendTxt);
 							tp2.append(appendTxt);
+							
 							progress.addToBar(0.1/(double)track.size());
 						}					
 						tp.append("");
